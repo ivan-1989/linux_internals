@@ -1,0 +1,107 @@
+ ---- Kernel I/O subsystem ----
+Buffreing:
+
+store data in memory while transferring data between device
+ - device speed mismatch
+ - device transfer size mismatch
+ - "copy semantics"
+  -- Data is first copied from user application memory into kernel memory
+  -- Data from kernel memory is then written to device
+  -- Prevent application from changing contents of a buffer before it is done being written
+
+Scheduling:
+ - Some I/O requests ordering via per-device queue
+  -- Attempt to use devices optimaly while still providing priority
+ - Some implement Quality of Service (e.g IPQOS)
+
+Caching:
+possible to reuse buffers in main memory for caching
+ - Cache files that written/read frequently
+ - Increase performance
+
+Spooling:
+A buffer that holds output for a device  that cannot accepted interleaved data streams 
+ - If device can serve one request at a time 
+ - allows a user to see individual data streams and remove streams if desired
+ 
+Device reservation:
+Provides exclusive access to device.
+ - System calls for allocation and deallocation
+ - Wathc out for deadlock
+ 
+
+
+All I/O instructions defined to be priviledged (i.e kernel must perform I/O)
+I/O must be performed via systemcalls
+
+- kernel keep states info about I/O components, include open file tables, network connetctions, eg.
+- mant comples data structures to track buffers, memory allocation, "dirty blocks" 
+
+
+
+As each file system is initialised, it registers itself with the VFS. This happens as the operating system initialises itself at system boot time. 
+
+Like the EXT2 file system, every file, directory and so on in the VFS is represented by one and only one VFS inode.
+
+The information in each VFS inode is built from information in the underlying file system by file system specific routines. 
+VFS inodes exist only in the kernel's memory and are kept in the VFS inode cache as long as they are useful to the system.
+
+
+# list curently supported filesystems
+cat /proc/filesystems
+
+1. обращение к файлу
+
+https://www.kernel.org/doc/Documentation/filesystems/vfs.txt
+The VFS implements the open(2), stat(2), chmod(2), and similar system
+calls. The pathname argument that is passed to them is used by the VFS
+to search through the directory entry cache (also known as the dentry
+cache or dcache). This provides a very fast look-up mechanism to
+translate a pathname (filename) into a specific dentry. Dentries live
+in RAM and are never saved to disc: they exist only for performance.
+
+
+reading a file from disk for a process:
+
+- determine device holding file.
+All information needed by the filesystem to handle a file is included in a data structure called an inode. Each file has its own inode, which the filesystem uses to identify the file.
+Inode number is also known as index number. An inode is a unique number assigned to files and directories while it is created. The inode number will be unique to entire filesystem.
+
+EXT2 directories are simply special files (themselves described by inodes) which contain pointers to the inodes of their directory entries.
+
+A file system does not need to concern itself with where on the physical media a block should be put, that is the job of the device's driver.
+Whenever a file system needs to read information or data from the block device containing it, it requests that its supporting device driver reads an integral number of blocks. 
+The EXT2 file system divides the logical partition that it occupies into Block Groups.
+
+
+information is stored in inode:
+
+-File type: regular file, directory, pipe etc.
+-Permissions to that file: read, write, execute
+-Link count: The number of hard link relative to an inode
+-User ID: owner of file
+-Group ID: group owner
+-Size of file: or major/minor number in case of some special files
+-Time stamp: access time, modification time and (inode) change time
+-Attributes: immutable' for example
+-Access control list: permissions for special users/groups
+-Link to location of file
+-Other metadata about the file
+
+
+tools for investigate:
+- stat
+- debugfs
+ -- dump_inode <src-file> <dst-file>
+
+
+
+https://www.oreilly.com/library/view/understanding-the-linux/0596005652/ch01s05.html	
+
+
+- translate name to device representation				????
+- physically read data from disk into buffer			????
+- make data available to requesting process				????
+- return control to process								?
+
+2. 	
